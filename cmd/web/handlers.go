@@ -58,6 +58,10 @@ func (app *application) main(w http.ResponseWriter, r *http.Request) {
 
 func (app *application) PostView(w http.ResponseWriter, r *http.Request) {
 	params := httprouter.ParamsFromContext(r.Context())
+	var loggedInuser int = 0
+	if app.sessionManager.Get(r.Context(), "authenticatedUserID") != nil {
+		loggedInuser, _ = app.sessionManager.Get(r.Context(), "authenticatedUserID").(int)
+	}
 
 	id, err := strconv.Atoi(params.ByName("id"))
 	if err != nil || id < 1 {
@@ -68,6 +72,8 @@ func (app *application) PostView(w http.ResponseWriter, r *http.Request) {
 	snippet, err := app.posts.Get(id)
 	comments, err := app.comments.GetCommentsByPostId(id)
 	likesCount, err := app.likes.GetTotalLikesByPostId(id)
+	checkifUserLiked, _ := app.likes.CheckIfUserHasLiked(loggedInuser, id)
+	log.Println(checkifUserLiked)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 			app.notFound(w)
@@ -80,12 +86,8 @@ func (app *application) PostView(w http.ResponseWriter, r *http.Request) {
 	data.Post = snippet
 	data.Comments = comments
 	data.Likes = likesCount
-	if app.sessionManager.Get(r.Context(), "authenticatedUserID") != nil {
-		data.LoggedInUser, _ = app.sessionManager.Get(r.Context(), "authenticatedUserID").(int)
-	} else {
-		data.LoggedInUser = 0
-	}
-
+	data.UserLiked = !checkifUserLiked
+	data.LoggedInUser = loggedInuser
 	app.render(w, http.StatusOK, "view.tmpl", data)
 }
 
@@ -121,6 +123,8 @@ func (app *application) userLogin(w http.ResponseWriter, r *http.Request) {
 //Posts route
 
 func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
+
+	log.Println("camer")
 	var form userSignupForm
 
 	err := app.decodePostForm(r, &form)
@@ -143,8 +147,10 @@ func (app *application) userSignupPost(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err = app.users.Insert(form.Name, form.Email, form.Password)
+	//log.Println("hey-----", err.Error())
+
 	if err != nil {
-		if errors.Is(err, models.ErrDuplicateEmail) {
+		if err.Error() == "UNIQUE constraint failed: users.email" {
 			form.AddFieldError("email", "Email address is already in use")
 
 			data := app.newTemplateData(r)
@@ -280,7 +286,7 @@ func (app *application) commentCreate(w http.ResponseWriter, r *http.Request) {
 		app.clientError(w, http.StatusBadRequest)
 		return
 	}
-	log.Println("cam hhere", form.UserId)
+
 	_, err = app.comments.Insert(form.PostId, form.UserId, form.Content)
 
 	if err != nil {

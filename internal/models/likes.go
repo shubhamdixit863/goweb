@@ -2,6 +2,8 @@ package models
 
 import (
 	"database/sql"
+	"errors"
+	"fmt"
 	"log"
 	"time"
 )
@@ -9,6 +11,7 @@ import (
 type LikesModelInterface interface {
 	Insert(postid int, userid int) (int, error)
 	GetTotalLikesByPostId(postid int) (int, error)
+	CheckIfUserHasLiked(userid int, postid int) (bool, error)
 }
 
 type Likes struct {
@@ -57,5 +60,28 @@ func (m *LikesModel) GetTotalLikesByPostId(postid int) (int, error) {
 	}
 
 	return count, nil
+
+}
+
+func (m *LikesModel) CheckIfUserHasLiked(userid int, postid int) (bool, error) {
+	log.Println(userid, postid)
+	stmt := `SELECT id FROM likes
+    WHERE  userid = ? AND postid =? LIMIT 1`
+
+	row := m.DB.QueryRow(stmt, userid, postid)
+
+	s := &Likes{}
+
+	err := row.Scan(&s.ID)
+	fmt.Println(err)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return false, ErrNoRecord
+		} else {
+			return false, err
+		}
+	}
+
+	return true, nil
 
 }

@@ -23,6 +23,7 @@
 
     {{end}}
     {{if .IsAuthenticated}}
+    {{if .UserLiked}}
                  <form action='/like/post' method='POST' novalidate>
                        <!-- Include the CSRF token -->
                                  <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
@@ -30,7 +31,7 @@
                   <input type='hidden' name='postId' value='{{.Post.ID}}' />
                   <input type='hidden' name='userid'  value='{{.LoggedInUser}}' />
                  </form>
-
+    {{end}}
                     {{end}}
        {{if .IsAuthenticated}}
         <div class="container">
