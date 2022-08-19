@@ -1,0 +1,75 @@
+{{define "title"}}Snippet #{{.Post.ID}}{{end}}
+
+{{define "main"}}
+    {{with .Post}}
+    <div class='snippet'>
+        <div class='metadata'>
+            <strong>{{.Title}}</strong>
+            <span>#{{.ID}}</span>
+        </div>
+        <pre><code>{{.Content}}</code></pre>
+        <div class='metadata'>
+            <!-- Use the new template function here -->
+            <time>Likes: {{.Created}}</time>
+            <time>Created At: {{ .Created}}</time>
+
+
+        </div>
+    </div>
+
+
+
+    {{end}}
+    {{if .IsAuthenticated}}
+                 <form action='/like/post'>
+                 <input type='submit' value='Like Post'/>
+                  <input type='hidden' name='postId' value='{{.Post.ID}}' />
+                  <input type='hidden' name='userid'  value='{{.LoggedInUser}}' />
+                 </form>
+
+                    {{end}}
+       {{if .IsAuthenticated}}
+        <div class="container">
+            <form action='/comment/create' method='POST' novalidate >
+             <!-- Include the CSRF token -->
+                <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
+              <div class="form-group">
+                <textarea name='content' class="form-control status-box" rows="3" placeholder="Enter your comment here..."></textarea>
+                <input type='hidden' name='postId' value='{{.Post.ID}}' />
+                <input type='hidden' name='userid'  value='{{.LoggedInUser}}' />
+              </div>
+               <div class="button-group pull-right">
+
+                                <div>
+                                    <input type='submit' value='Post Comment'>
+                                </div>
+                          </div>
+            </form>
+
+
+          </div>
+
+
+
+
+              {{end}}
+                 <h2 id='commentid'>Comments</h2>
+
+                {{if .Comments}}
+
+                      {{range .Comments}}
+                      <tr>
+                         <div class='snippet'>
+
+                                 <pre><code>{{.Content}}</code></pre>
+
+                             </div>
+                      </tr>
+                      {{end}}
+
+                  {{else}}
+                      <p>No comments on this Post  yet!</p>
+                  {{end}}
+
+
+{{end}}
