@@ -2,6 +2,7 @@ package models
 
 import (
 	"database/sql"
+	"log"
 	"time"
 )
 
@@ -23,7 +24,7 @@ type LikesModel struct {
 
 func (m *LikesModel) Insert(postid int, userid int) (int, error) {
 	stmt := `INSERT INTO likes (postid, userid, created)
-    VALUES(?, ?, ?, ?)`
+    VALUES(?, ?, ?)`
 
 	result, err := m.DB.Exec(stmt, postid, userid, time.Now().Format("2006-01-02 15:04:05 Monday"))
 	if err != nil {
@@ -49,9 +50,10 @@ func (m *LikesModel) GetTotalLikesByPostId(postid int) (int, error) {
 	}
 	defer rows.Close()
 
-	err = rows.Scan(&count)
-	if err != nil {
-		return 0, err
+	for rows.Next() {
+		if err := rows.Scan(&count); err != nil {
+			log.Fatal(err)
+		}
 	}
 
 	return count, nil

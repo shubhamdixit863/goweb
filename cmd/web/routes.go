@@ -31,6 +31,7 @@ func (app *application) routes() http.Handler {
 	router.Handler(http.MethodPost, "/user/login", dynamic.ThenFunc(app.userLoginPost))
 
 	protected := dynamic.Append(app.requireAuthentication)
+	router.Handler(http.MethodPost, "/like/post", protected.ThenFunc(app.LikePost))
 	router.Handler(http.MethodPost, "/comment/create", protected.ThenFunc(app.commentCreate))
 
 	router.Handler(http.MethodGet, "/snippet/create", protected.ThenFunc(app.postCreate))

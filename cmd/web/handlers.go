@@ -67,6 +67,7 @@ func (app *application) PostView(w http.ResponseWriter, r *http.Request) {
 
 	snippet, err := app.posts.Get(id)
 	comments, err := app.comments.GetCommentsByPostId(id)
+	likesCount, err := app.likes.GetTotalLikesByPostId(id)
 	if err != nil {
 		if errors.Is(err, models.ErrNoRecord) {
 			app.notFound(w)
@@ -78,6 +79,7 @@ func (app *application) PostView(w http.ResponseWriter, r *http.Request) {
 	data := app.newTemplateData(r)
 	data.Post = snippet
 	data.Comments = comments
+	data.Likes = likesCount
 	if app.sessionManager.Get(r.Context(), "authenticatedUserID") != nil {
 		data.LoggedInUser, _ = app.sessionManager.Get(r.Context(), "authenticatedUserID").(int)
 	} else {
@@ -289,6 +291,38 @@ func (app *application) commentCreate(w http.ResponseWriter, r *http.Request) {
 	app.sessionManager.Put(r.Context(), "flash", "SuccessFully Commented")
 
 	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", form.PostId), http.StatusSeeOther)
+}
+
+type likeForm struct {
+	UserId int `form:"userid"`
+
+	PostId int `form:"postId"`
+}
+
+func (app *application) LikePost(w http.ResponseWriter, r *http.Request) {
+	log.Println("Request Came")
+
+	var form likeForm
+
+	err := app.decodePostForm(r, &form)
+
+	if err != nil {
+
+		app.clientError(w, http.StatusBadRequest)
+		return
+	}
+	log.Println("cam hhere", form.UserId)
+	_, err = app.likes.Insert(form.PostId, form.UserId)
+
+	if err != nil {
+		app.serverError(w, err)
+		return
+	}
+
+	app.sessionManager.Put(r.Context(), "flash", "SuccessFully Liked")
+
+	http.Redirect(w, r, fmt.Sprintf("/snippet/view/%d", form.PostId), http.StatusSeeOther)
+
 }
 
 func ping(w http.ResponseWriter, r *http.Request) {

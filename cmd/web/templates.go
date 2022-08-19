@@ -20,6 +20,8 @@ type templateData struct {
 	CSRFToken       string
 	LoggedInUser    int
 	Comments        []*models.Comment
+	Likes           int
+	UserLiked       bool
 }
 
 func humanDate(t time.Time) string {

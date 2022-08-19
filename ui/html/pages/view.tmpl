@@ -10,7 +10,9 @@
         <pre><code>{{.Content}}</code></pre>
         <div class='metadata'>
             <!-- Use the new template function here -->
-            <time>Likes: {{.Created}}</time>
+               {{end}}
+            <time>Likes: {{.Likes}}</time>
+               {{with .Post}}
             <time>Created At: {{ .Created}}</time>
 
 
@@ -21,7 +23,9 @@
 
     {{end}}
     {{if .IsAuthenticated}}
-                 <form action='/like/post'>
+                 <form action='/like/post' method='POST' novalidate>
+                       <!-- Include the CSRF token -->
+                                 <input type='hidden' name='csrf_token' value='{{.CSRFToken}}'>
                  <input type='submit' value='Like Post'/>
                   <input type='hidden' name='postId' value='{{.Post.ID}}' />
                   <input type='hidden' name='userid'  value='{{.LoggedInUser}}' />
