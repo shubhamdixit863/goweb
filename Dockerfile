@@ -26,7 +26,7 @@ WORKDIR /app
 # `boilerplate` should be replaced here as well
 COPY --from=build /src/cmd/web/ .
 
-# Exposes port 8090 because our program listens on that port
-EXPOSE 8090
+# Exposes port 4000 because our program listens on that port
+EXPOSE 4000
 
 CMD ["./app"]
